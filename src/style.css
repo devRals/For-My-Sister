@@ -12,12 +12,10 @@
 }
 
 body {
-  background-color: rgba(0, 0, 0, 0.4);
-  background-image: var(--bg);
+  background: linear-gradient(0deg, #2f2f85, #050540);
   background-size: cover;
   min-height: 100vh;
   background-repeat: no-repeat;
-  background-blend-mode: color;
 }
 
 .blurred {

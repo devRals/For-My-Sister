@@ -1,3 +1,11 @@
-import { useState } from "react";
-
-export default function App() {}
+export default function () {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    ></div>
+  );
+}

@@ -1,68 +1,70 @@
 import React, { useEffect, useRef, useState } from "react";
-import StarsWorker from "./worker?worker&inline";
-import { MessageType } from "./worker";
+import BgWorker from "./worker?worker&inline";
+import { MessageType, type WorkerData } from "./worker";
 
-const CANVAS_WIDTH = 320;
-const CANVAS_HEIGHT = 180;
+export interface BackDrop {
+    program: WebGLProgram;
+    vao: WebGLVertexArrayObject;
+    count: number;
+    init: (gl: WebGL2RenderingContext) => Promise<void>;
+    draw: (gl: WebGL2RenderingContext, dt: number) => void;
+}
 
-export const canvas_res = [CANVAS_WIDTH, CANVAS_HEIGHT] as const;
+export default function Background() {
+    const ref = useRef<HTMLCanvasElement>(null);
+    const [loading, setLoading] = useState<"loading" | "ready" | "error">("loading");
 
-export default function () {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const [loading, setLoading] = useState<"loading" | "ready">("loading");
+    useEffect(() => {
+        const ctrl = new AbortController()
+        const { signal } = ctrl;
+        if (!ref.current) return;
+        const canvas: HTMLCanvasElement = ref.current!;
 
-  useEffect(() => {
-    const ctrl = new AbortController();
-    const { signal } = ctrl;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-    if (!ref.current) return;
-    const canvas: HTMLCanvasElement = ref.current!;
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
-    const worker = new StarsWorker();
-    const offscreen = canvas.transferControlToOffscreen();
+        const worker = new BgWorker();
+        const offscreen = canvas.transferControlToOffscreen();
 
-    worker.onmessage = (e) => {
-      console.log(e);
-      setLoading(e.data.state);
-    };
+        worker.onmessage = (e: MessageEvent<WorkerData>) => {
+            const state = e.data.state
+            if (state == "ready") {
+                setLoading(state);
+            } else if (state == "error") {
+                setLoading(state)
+            }
+        }
 
-    worker.postMessage({ offscreen, type: MessageType.Init }, [offscreen]);
+        window.addEventListener("resize", () => {
+            worker.postMessage({ type: MessageType.Resize, width: window.innerWidth, height: window.innerHeight })
+        }, { signal })
 
-    window.addEventListener(
-      "resize",
-      () => {
-        worker.postMessage({ type: MessageType.Resize }, []);
-      },
-      { signal },
+        window.addEventListener("scroll", () => {
+            worker.postMessage({ type: MessageType.Scroll, scroll: window.scrollY })
+        }, { signal })
+
+        worker.postMessage({ offscreen, type: MessageType.Init, width: window.innerWidth, height: window.innerHeight }, [offscreen]);
+
+        return () => { worker.terminate(); ctrl.abort() };
+    }, []);
+
+    return (
+        <>
+            {
+                loading == "loading" ? "Yükleniyor..."
+                    : loading == "error" ? "Bir hata, konsolu kontrol et"
+                        : ""
+            }
+            <canvas
+                ref={ref}
+                style={{
+                    position: "fixed",
+                    zIndex: -1,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    insert: 0,
+                }}
+            />
+        </>
     );
-
-    window.addEventListener(
-      "scroll",
-      () => {
-        worker.postMessage({ type: MessageType.Scroll }, []);
-      },
-      { signal },
-    );
-
-    return () => {
-      worker.terminate();
-      ctrl.abort();
-    };
-  }, []);
-
-  return (
-    <>
-      {loading == "loading" && "loading..."}
-      <canvas
-        ref={ref}
-        style={{
-          zIndex: -1,
-          width: "100vw",
-          height: "100vh",
-          position: "fixed",
-        }}
-      ></canvas>
-    </>
-  );
 }

@@ -1,13 +1,21 @@
 {
-  "compilerOptions": {
-    "lib": ["esnext", "dom"],
-    "target": "es2020",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "jsx": "react",
-    "types": ["vite/client"],
-    "strict": true,
-    "noEmit": true
-  },
-  "include": ["src"]
+    "compilerOptions": {
+        "lib": [
+            "ES2020",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "target": "esnext",
+        "module": "ESNext",
+        "skipLibCheck": true,
+        "moduleResolution": "bundler",
+        "types": [
+            "vite/client"
+        ],
+        "jsx": "react-jsx",
+        "strict": true
+    },
+    "include": [
+        "src"
+    ]
 }
