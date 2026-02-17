@@ -1,21 +1,23 @@
 import vertSrc from "./shaders/vertex.vert?raw";
 import fragSrc from "./shaders/fragment.frag?raw";
-import { clamp, Shader, Texture, VAO, VBO, VertexAttrib } from "../utils";
+import { Shader, Texture, VAO, VBO, VertexAttrib } from "../utils";
 import { BackDrop } from "..";
 import textures from "./textures";
+import { clamp, randRange } from "../../math";
 
 type StarsTexture = [
-    [WebGLTexture, WebGLTexture, WebGLTexture],
-    [WebGLTexture, WebGLTexture, WebGLTexture],
-    [WebGLTexture, WebGLTexture, WebGLTexture],
+    [WebGLTexture, WebGLTexture, WebGLTexture, WebGLTexture],
+    [WebGLTexture, WebGLTexture, WebGLTexture, WebGLTexture],
+    [WebGLTexture, WebGLTexture, WebGLTexture, WebGLTexture],
 ]
 const STAR_COUNT = 100;
 
 const starsData = () => {
     const data = []
-    for (let i = 0; i <= STAR_COUNT; i++) {
+    for (let i = 0; i < STAR_COUNT; i++) {
         data.push((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 4) // Pos (x, y)
         data.push(Math.round(Math.random() * 2)) // Star kind 0=a, 1=b, 2=c
+        data.push(Math.round(randRange(1, 2))) // Star speed
     }
 
     return new Float32Array(data);
@@ -23,14 +25,14 @@ const starsData = () => {
 
 export default {
     textures: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
     ],
     program: 0,
     count: 0,
     vao: 0,
-    async init(gl) {
+    init(gl) {
         const program = Shader(gl, vertSrc, fragSrc);
         gl.useProgram(program);
         const vao = VAO(gl);
@@ -38,9 +40,10 @@ export default {
         const data = starsData();
         VBO(gl, data);
 
-        const stride = 3 * 4
+        const stride = 4 * 4
         VertexAttrib(gl, program, gl.FLOAT, "a_pos", 2, stride, 0);
         VertexAttrib(gl, program, gl.FLOAT, "a_kind", 1, stride, 2 * 4)
+        VertexAttrib(gl, program, gl.FLOAT, "a_speed", 1, stride, 3 * 4)
 
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
@@ -49,17 +52,17 @@ export default {
             const tex_group = textures[i]
             for (let j = 0; j < tex_group.length; j++) {
                 const texSrc = tex_group[j]
-                const tex = await Texture(gl, texSrc)
+                const tex = Texture(gl, texSrc)
                 this.textures[i][j] = tex
             }
         }
 
         this.program = program;
         this.vao = vao;
-        this.count = data.length / 3;
+        this.count = data.length / 4;
     },
 
-    draw(gl, dt: number) {
+    draw(gl, dt) {
         gl.enable(gl.BLEND)
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
@@ -68,7 +71,7 @@ export default {
         const u_time = gl.getUniformLocation(this.program, "u_time");
         gl.uniform1f(u_time, dt)
 
-        const index = clamp(Math.floor(Math.sin(dt) + 1.50), 0, 2)
+        const index = clamp(Math.floor(Math.sin(dt) * 4), 0, 3)
 
         this.textures.forEach((texGroup, i) => {
             const kind = i == 0 ? "a"
@@ -83,5 +86,12 @@ export default {
         })
 
         gl.drawArrays(gl.POINTS, 0, this.count);
+        gl.disable(gl.BLEND)
+        gl.bindVertexArray(null)
     },
-} as BackDrop & { textures: StarsTexture };
+} as BackDrop & {
+    program: WebGLProgram,
+    vao: WebGLVertexArrayObject,
+    count: number,
+    textures: StarsTexture
+};

@@ -1,5 +1,6 @@
 :root {
-  --bg: url("/assets/images/bg/0.png");
+  --bg_image: url("/assets/images/bg/0.png");
+  --bg_gradiant: linear-gradient(0deg, #0f0f32, #050514); 
   --text-color: #e1e1e1;
 }
 
@@ -12,10 +13,12 @@
 }
 
 body {
-  background: linear-gradient(0deg, #2f2f85, #050540);
+  /* background: linear-gradient(0deg, #2f2f85, #050540); */
+    background: var(--bg_gradiant);
   background-size: cover;
   min-height: 100vh;
   background-repeat: no-repeat;
+  /* background-color: rgba(0, 0, 0, .6); background-blend-mode: color; */
 }
 
 .blurred {

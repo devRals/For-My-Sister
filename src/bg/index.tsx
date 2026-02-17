@@ -3,11 +3,8 @@ import BgWorker from "./worker?worker&inline";
 import { MessageType, type WorkerData } from "./worker";
 
 export interface BackDrop {
-    program: WebGLProgram;
-    vao: WebGLVertexArrayObject;
-    count: number;
-    init: (gl: WebGL2RenderingContext) => Promise<void>;
-    draw: (gl: WebGL2RenderingContext, dt: number) => void;
+    init: (gl: WebGL2RenderingContext) => void;
+    draw: (gl: WebGL2RenderingContext, dt: number, canvas: OffscreenCanvas) => void;
 }
 
 export default function Background() {
@@ -62,7 +59,7 @@ export default function Background() {
                     zIndex: -1,
                     width: window.innerWidth,
                     height: window.innerHeight,
-                    insert: 0,
+                    imageRendering: "pixelated"
                 }}
             />
         </>

@@ -2,20 +2,20 @@ precision mediump float;
 
 attribute vec2 a_pos;
 attribute float a_kind;
+attribute float a_speed;
 
 uniform float u_time;
 
 varying float v_anim;
 varying float v_starKind;
-
-float random2d(vec2 coord);
+varying float v_speed;
 
 void main() {
-    float y = tan(a_pos.y - u_time / 20.0); // falling animation
+    float y = tan(a_pos.y - u_time * a_speed / 20.0);
     float x = a_pos.x;
-    if (y < -1.0) {
+
+    if (y > 1.0) {
         y = 1.1;
-        x = random2d(a_pos);
     }
 
     gl_PointSize = 50.0;
@@ -23,8 +23,5 @@ void main() {
 
     v_anim = u_time;
     v_starKind = a_kind;
-}
-
-float random2d(vec2 coord){
-    return fract(sin(dot(coord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    v_speed = a_speed;
 }

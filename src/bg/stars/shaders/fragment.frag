@@ -2,6 +2,7 @@ precision mediump float;
 
 varying float v_anim;
 varying float v_starKind;
+varying float v_speed;
 
 uniform struct {
     sampler2D kind_a;

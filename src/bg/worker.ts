@@ -1,30 +1,33 @@
 import { BackDrop } from ".";
 import Stars from "./stars";
+import NortherLights from "./northern_lights";
 
 let gl: WebGL2RenderingContext | null;
 let canvas: OffscreenCanvas | null;
 let animId: number | null
 
+
 const init = async () => {
     if (!canvas) return;
     gl = canvas.getContext("webgl2");
     if (!gl) throw new Error("webgl2 desteklenmiyor");
+    gl.viewport(0, 0, canvas.width, canvas.height)
 
+    Stars.init(gl);
+    NortherLights.init(gl);
 
-    await Stars.init(gl);
-
-    render([Stars])
+    render([Stars, NortherLights])
 };
 
 let dt: number = 0
 
 const render = (backdrops: BackDrop[]) => {
-    if (!gl) return;
-    dt = (performance.now() - dt) / 200
+    if (!gl || !canvas) return;
+    dt = (performance.now() - dt) / 400; // scale down for slower animation
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     for (const b of backdrops) {
-        b.draw(gl, dt);
+        b.draw(gl, dt, canvas);
     }
 
     animId = requestAnimationFrame(() => render(backdrops))
