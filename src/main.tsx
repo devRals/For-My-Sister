@@ -1,5 +1,4 @@
 import { createRoot } from "react-dom/client";
-import App from "./app";
 import Background from "./bg";
 
 import { createTheme, MantineProvider } from "@mantine/core"
