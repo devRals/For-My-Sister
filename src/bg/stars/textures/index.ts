@@ -15,7 +15,7 @@ import c03 from "./c03.png"
 
 const textures = [
     [a00, a01, a02, a03],
-    [b00, b01, b02, b03],
+    [b03, b02, b01, b00],
     [c00, c01, c02, c03],
 ] as const
 

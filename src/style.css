@@ -2,6 +2,12 @@
   --bg_image: url("/assets/images/bg/0.png");
   --bg_gradiant: linear-gradient(0deg, #020825, #170c2f); 
   --text-color: #e1e1e1;
+  --font-family: "Renogore", "monospace";
+}
+
+@font-face {
+    font-family: "Renogore";
+    src: url("/fonts/renogare.otf")
 }
 
 * {
@@ -10,6 +16,7 @@
   box-sizing: border-box;
   image-rendering: pixelated;
   color: var(--text-color);
+  font-family: var(--font-family);
 }
 
 body {

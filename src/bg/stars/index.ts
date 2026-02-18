@@ -10,7 +10,7 @@ type StarsTexture = [
     [WebGLTexture, WebGLTexture, WebGLTexture, WebGLTexture],
     [WebGLTexture, WebGLTexture, WebGLTexture, WebGLTexture],
 ]
-const STAR_COUNT = 100;
+const STAR_COUNT = 25;
 
 const starsData = () => {
     const data = []
@@ -32,7 +32,7 @@ export default {
     program: 0,
     count: 0,
     vao: 0,
-    init(gl) {
+    async init(gl) {
         const program = Shader(gl, vertSrc, fragSrc);
         gl.useProgram(program);
         const vao = VAO(gl);
@@ -52,7 +52,7 @@ export default {
             const tex_group = textures[i]
             for (let j = 0; j < tex_group.length; j++) {
                 const texSrc = tex_group[j]
-                const tex = Texture(gl, texSrc)
+                const tex = await Texture(gl, texSrc)
                 this.textures[i][j] = tex
             }
         }

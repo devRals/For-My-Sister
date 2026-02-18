@@ -4,7 +4,6 @@ import northerLightsTexturePath from "./northernlights.png"
 import { BindDynamic, Shader, Texture } from "../utils";
 import { BackDrop } from "..";
 import { NorthernLights } from "./NorthernLights";
-import { Vec3 } from "../../vec2";
 
 export const RESOULUTION: [number, number] = [320, 180]
 export const [WIDTH, HEIGHT] = RESOULUTION
@@ -27,7 +26,7 @@ export default {
             alpha: 0
         }
     },
-    init(gl) {
+    async init(gl) {
         const program = Shader(gl, vertSrc, fragSrc)
         gl.useProgram(program)
 
@@ -44,7 +43,7 @@ export default {
             }
         }
 
-        this.northernLightsTex = Texture(gl, northerLightsTexturePath, {
+        this.northernLightsTex = await Texture(gl, northerLightsTexturePath, {
             wrap: "repeat",
             filter: "linear"
         })
@@ -66,6 +65,20 @@ export default {
 
         this.auroa.update(dt)
         this.auroa.beforeRender()
+
+        const pColorsData = []
+        const pPosData = []
+        for (const particle of this.auroa.particles) {
+            pPosData.push(particle.pos.x, particle.pos.y)
+            pColorsData.push(particle.color.x, particle.color.y, particle.color.z)
+        }
+
+        gl.uniform1i(gl.getUniformLocation(this.program, "u_drawParticle"), 1)
+
+        BindDynamic(gl, this.buffers.auroa.colors, this.program, new Float32Array(pColorsData), "a_color", 3)
+        BindDynamic(gl, this.buffers.auroa.pos, this.program, new Float32Array(pPosData), "a_pos", 2)
+
+        gl.drawArrays(gl.POINTS, 0, this.auroa.particles.length)
 
         const colorData = []
         const posData = []
@@ -90,20 +103,6 @@ export default {
         gl.uniform1i(gl.getUniformLocation(this.program, "u_drawParticle"), 0)
 
         gl.drawArrays(gl.TRIANGLES, 0, this.auroa.verts.length)
-
-        const pColorsData = []
-        const pPosData = []
-        for (const particle of this.auroa.particles) {
-            pPosData.push(particle.pos.x, particle.pos.y)
-            pColorsData.push(particle.color.x, particle.color.y, particle.color.z)
-        }
-
-        gl.uniform1i(gl.getUniformLocation(this.program, "u_drawParticle"), 1)
-
-        BindDynamic(gl, this.buffers.auroa.colors, this.program, new Float32Array(pColorsData), "a_color", 3)
-        BindDynamic(gl, this.buffers.auroa.pos, this.program, new Float32Array(pPosData), "a_pos", 2)
-
-        gl.drawArrays(gl.POINTS, 0, this.auroa.particles.length)
 
     },
 } as BackDrop & {

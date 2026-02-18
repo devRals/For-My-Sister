@@ -13,8 +13,10 @@ const init = async () => {
     if (!gl) throw new Error("webgl2 desteklenmiyor");
     gl.viewport(0, 0, canvas.width, canvas.height)
 
-    Stars.init(gl);
-    NortherLights.init(gl);
+    await Stars.init(gl);
+    await NortherLights.init(gl);
+
+    console.log("initilized");
 
     render([Stars, NortherLights])
 };
@@ -62,7 +64,6 @@ self.onmessage = async (e: MessageEvent<WorkerData>) => {
             try {
                 await init();
                 self.postMessage({ state: "ready" });
-                console.log("initilized");
             } catch (error) {
                 self.postMessage({ state: "error" })
                 console.error(error);

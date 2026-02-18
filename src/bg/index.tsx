@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import BgWorker from "./worker?worker&inline";
-import { MessageType, type WorkerData } from "./worker";
+import { useEffect, useRef } from "react";
+import { MessageType } from "./worker";
+import mist from "./mist.png"
 
 export interface BackDrop {
-    init: (gl: WebGL2RenderingContext) => void;
+    init: (gl: WebGL2RenderingContext) => Promise<void>;
     draw: (gl: WebGL2RenderingContext, time: number, dt: number, canvas: OffscreenCanvas) => void;
 }
 
@@ -19,7 +19,7 @@ export default function Background() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const worker = new BgWorker();
+        const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
         const offscreen = canvas.transferControlToOffscreen();
 
         window.addEventListener("resize", () => {
@@ -36,7 +36,16 @@ export default function Background() {
     }, []);
 
     return (
-        <>
+        <div className="bg">
+            <img src={mist} style={{
+                position: "fixed",
+                width: window.innerWidth,
+                height: window.innerHeight,
+                zIndex: 0,
+                imageRendering: "pixelated",
+                userSelect: "none",
+                backgroundRepeat: "repeat",
+            }} />
             <canvas
                 ref={ref}
                 style={{
@@ -47,6 +56,6 @@ export default function Background() {
                     imageRendering: "pixelated"
                 }}
             />
-        </>
+        </div>
     );
 }

@@ -62,7 +62,7 @@ export function VertexAttrib(
     gl.enableVertexAttribArray(loc);
 }
 
-export function Texture(gl: WebGL2RenderingContext, src: string, texParams: {
+export async function Texture(gl: WebGL2RenderingContext, src: string, texParams: {
     wrap?: "clamp" | "repeat",
     filter?: "nearest" | "linear"
 } = {
