@@ -4,12 +4,11 @@ import { MessageType, type WorkerData } from "./worker";
 
 export interface BackDrop {
     init: (gl: WebGL2RenderingContext) => void;
-    draw: (gl: WebGL2RenderingContext, dt: number, canvas: OffscreenCanvas) => void;
+    draw: (gl: WebGL2RenderingContext, time: number, dt: number, canvas: OffscreenCanvas) => void;
 }
 
 export default function Background() {
     const ref = useRef<HTMLCanvasElement>(null);
-    const [loading, setLoading] = useState<"loading" | "ready" | "error">("loading");
 
     useEffect(() => {
         const ctrl = new AbortController()
@@ -22,15 +21,6 @@ export default function Background() {
 
         const worker = new BgWorker();
         const offscreen = canvas.transferControlToOffscreen();
-
-        worker.onmessage = (e: MessageEvent<WorkerData>) => {
-            const state = e.data.state
-            if (state == "ready") {
-                setLoading(state);
-            } else if (state == "error") {
-                setLoading(state)
-            }
-        }
 
         window.addEventListener("resize", () => {
             worker.postMessage({ type: MessageType.Resize, width: window.innerWidth, height: window.innerHeight })
@@ -47,11 +37,6 @@ export default function Background() {
 
     return (
         <>
-            {
-                loading == "loading" ? "Yükleniyor..."
-                    : loading == "error" ? "Bir hata, konsolu kontrol et"
-                        : ""
-            }
             <canvas
                 ref={ref}
                 style={{

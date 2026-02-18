@@ -4,6 +4,7 @@ import northerLightsTexturePath from "./northernlights.png"
 import { BindDynamic, Shader, Texture } from "../utils";
 import { BackDrop } from "..";
 import { NorthernLights } from "./NorthernLights";
+import { Vec3 } from "../../vec2";
 
 export const RESOULUTION: [number, number] = [320, 180]
 export const [WIDTH, HEIGHT] = RESOULUTION
@@ -22,7 +23,8 @@ export default {
         auroa: {
             colors: 0,
             pos: 0,
-            tex: 0
+            tex: 0,
+            alpha: 0
         }
     },
     init(gl) {
@@ -33,7 +35,8 @@ export default {
             auroa: {
                 colors: gl.createBuffer(),
                 pos: gl.createBuffer(),
-                tex: gl.createBuffer()
+                tex: gl.createBuffer(),
+                alpha: gl.createBuffer()
             },
             particles: {
                 colors: gl.createBuffer(),
@@ -41,24 +44,25 @@ export default {
             }
         }
 
-        this.northernLightsTex = Texture(gl, northerLightsTexturePath)
-
-        this.auroa = new NorthernLights(3)
+        this.northernLightsTex = Texture(gl, northerLightsTexturePath, {
+            wrap: "repeat",
+            filter: "linear"
+        })
 
         this.program = program
+
+        this.auroa = new NorthernLights()
     },
 
-    draw(gl, dt, _) {
+    draw(gl, _, dt) {
         if (!this.auroa) throw new Error("NorthernLights arkaplanı henüz hazır değil")
 
         gl.enable(gl.BLEND)
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE)
 
         gl.useProgram(this.program);
         const u_resolution = gl.getUniformLocation(this.program, "u_resolution")
         gl.uniform2f(u_resolution, WIDTH, HEIGHT)
-
 
         this.auroa.update(dt)
         this.auroa.beforeRender()
@@ -66,20 +70,24 @@ export default {
         const colorData = []
         const posData = []
         const uvData = []
+        const alphaData = []
 
         for (const vert of this.auroa.verts) {
             colorData.push(vert.color.x, vert.color.y, vert.color.z)
             posData.push(vert.pos.x, vert.pos.y)
-            uvData.push(vert.texCoord.x, vert.texCoord.y)
+            uvData.push(vert.uv.x, vert.uv.y)
+            alphaData.push(vert.alpha)
         }
 
-        BindDynamic(gl, this.buffers.auroa.colors, new Float32Array(colorData), this.program, "a_color", 3)
-        BindDynamic(gl, this.buffers.auroa.pos, new Float32Array(posData), this.program, "a_pos", 2)
-        BindDynamic(gl, this.buffers.auroa.tex, new Float32Array(uvData), this.program, "a_uv", 2)
+        BindDynamic(gl, this.buffers.auroa.pos, this.program, new Float32Array(posData), "a_pos", 2)
+        BindDynamic(gl, this.buffers.auroa.colors, this.program, new Float32Array(colorData), "a_color", 3)
+        BindDynamic(gl, this.buffers.auroa.tex, this.program, new Float32Array(uvData), "a_uv", 2)
+        BindDynamic(gl, this.buffers.auroa.alpha, this.program, new Float32Array(alphaData), "a_alpha", 1)
 
         gl.activeTexture(gl.TEXTURE0)
         gl.bindTexture(gl.TEXTURE_2D, this.northernLightsTex)
         gl.uniform1i(gl.getUniformLocation(this.program, "u_tex"), 0)
+        gl.uniform1i(gl.getUniformLocation(this.program, "u_drawParticle"), 0)
 
         gl.drawArrays(gl.TRIANGLES, 0, this.auroa.verts.length)
 
@@ -90,8 +98,10 @@ export default {
             pColorsData.push(particle.color.x, particle.color.y, particle.color.z)
         }
 
-        BindDynamic(gl, this.buffers.auroa.colors, new Float32Array(pColorsData), this.program, "a_color", 3)
-        BindDynamic(gl, this.buffers.auroa.pos, new Float32Array(pPosData), this.program, "a_pos", 2)
+        gl.uniform1i(gl.getUniformLocation(this.program, "u_drawParticle"), 1)
+
+        BindDynamic(gl, this.buffers.auroa.colors, this.program, new Float32Array(pColorsData), "a_color", 3)
+        BindDynamic(gl, this.buffers.auroa.pos, this.program, new Float32Array(pPosData), "a_pos", 2)
 
         gl.drawArrays(gl.POINTS, 0, this.auroa.particles.length)
 
@@ -104,7 +114,8 @@ export default {
         auroa: {
             colors: WebGLBuffer,
             pos: WebGLBuffer,
-            tex: WebGLBuffer
+            tex: WebGLBuffer,
+            alpha: WebGLBuffer
         },
         particles: {
             colors: WebGLBuffer,

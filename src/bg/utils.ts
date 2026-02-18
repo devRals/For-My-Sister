@@ -53,16 +53,22 @@ export function VertexAttrib(
     type: GLenum,
     location: string,
     size: number,
-    stride?: number,
-    offset?: number,
-    normalize?: boolean
+    stride: number = 0,
+    offset: number = 0,
+    normalize: boolean = false,
 ) {
     const loc = gl.getAttribLocation(program, location);
-    gl.vertexAttribPointer(loc, size, type, normalize ?? false, stride ?? 0, offset ?? 0);
+    gl.vertexAttribPointer(loc, size, type, normalize, stride, offset);
     gl.enableVertexAttribArray(loc);
 }
 
-export function Texture(gl: WebGL2RenderingContext, src: string) {
+export function Texture(gl: WebGL2RenderingContext, src: string, texParams: {
+    wrap?: "clamp" | "repeat",
+    filter?: "nearest" | "linear"
+} = {
+        wrap: "clamp",
+        filter: "nearest"
+    }) {
     const tex = gl.createTexture();
 
     const load = async () => {
@@ -86,8 +92,14 @@ export function Texture(gl: WebGL2RenderingContext, src: string) {
             bitmap,
         );
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        const wrap = texParams && texParams.wrap === "repeat" ? gl.REPEAT : gl.CLAMP_TO_EDGE;
+        const filter = texParams && texParams.filter === "linear" ? gl.LINEAR : gl.NEAREST;
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
 
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.bindTexture(gl.TEXTURE_2D, null);
@@ -101,23 +113,21 @@ export function Texture(gl: WebGL2RenderingContext, src: string) {
 export function BindDynamic(
     gl: WebGL2RenderingContext,
     buffer: WebGLBuffer,
-    data: Float32Array<ArrayBuffer>,
     program: WebGLProgram,
+    data: Float32Array<ArrayBuffer>,
     name: string,
     size = 0,
-    normalized = false
 ) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
     gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW)
-    const loc = gl.getAttribLocation(program, name)
-    gl.enableVertexAttribArray(loc)
-    gl.vertexAttribPointer(loc, size, gl.FLOAT, normalized, 0, 0)
+    VertexAttrib(gl, program, gl.FLOAT, name, size,)
 }
 
 export type VertexPositionColorTexture = {
     pos: Vec2,
     color: Vec3,
-    texCoord: Vec2,
+    uv: Vec2,
+    alpha: number
 }
 
 export type VertexPositionColor = {

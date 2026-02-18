@@ -20,14 +20,19 @@ const init = async () => {
 };
 
 let dt: number = 0
+let last = performance.now()
 
 const render = (backdrops: BackDrop[]) => {
     if (!gl || !canvas) return;
-    dt = (performance.now() - dt) / 400; // scale down for slower animation
+    const time = performance.now() / 400 // scale down for slower animations
+    dt = (performance.now() - last) / 400;
+    last = performance.now()
+
+    gl.clearColor(0, 0, 0, 0)
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     for (const b of backdrops) {
-        b.draw(gl, dt, canvas);
+        b.draw(gl, time, dt, canvas);
     }
 
     animId = requestAnimationFrame(() => render(backdrops))
