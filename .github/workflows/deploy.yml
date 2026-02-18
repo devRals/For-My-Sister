@@ -8,13 +8,13 @@ on:
     branches:
       - master
 
-permissions:
-  contents: write
-  pages: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pages: write
 
     steps:
       - name: Checkout
@@ -31,6 +31,6 @@ jobs:
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
